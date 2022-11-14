@@ -1,10 +1,10 @@
-# serenity-bot-skeleton
-Bot template with serenity rust library
+# Raziel-bot
+fork from bot template https://github.com/unStatiK/serenity-bot-skeleton for custom functionality 
 
 # Build
 
-RUSTFLAGS="-C target-cpu=native" CARGO_HOME="<path_to_cargo_dir>" RUSTUP_HOME="<path_to_rustup_dir>" cargo.exe build --release
+RUSTFLAGS="-C target-cpu=native" CARGO_HOME="<path_to_cargo_dir>" RUSTUP_HOME="<path_to_rustup_dir>" cargo build --release
 
 # Run
 
-DISCORD_TOKEN=<discord_bot_token> ./target/release/bot.exe
+DISCORD_TOKEN=<discord_bot_token> ./target/release/raziel.exe
