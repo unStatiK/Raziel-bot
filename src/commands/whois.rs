@@ -143,7 +143,7 @@ fn get_all_saved_domains() -> Vec<String> {
 }
 
 fn get_expire_date_str(domain: &String) -> String {
-    return format!("{} expire -> {}\n", domain, get_expire_date(domain));
+    format!("{} expire -> {}\n", domain, get_expire_date(domain))
 }
 
 fn get_expire_date(domain: &str) -> String {
@@ -158,5 +158,5 @@ fn get_expire_date(domain: &str) -> String {
     if expire != None {
         return expire.unwrap().to_string();
     }
-    return "".to_string();
+    "".to_string()
 }

@@ -21,12 +21,13 @@ use serenity::framework::standard::macros::{command, group};
 use serenity::framework::standard::{StandardFramework, CommandResult};
 
 use libc_alloc::LibcAlloc;
+use crate::commands::cur::CurrencyHandler;
 
 #[global_allocator]
 static ALLOCATOR: LibcAlloc = LibcAlloc;
 
 #[group]
-#[commands(whois, version, uptime)]
+#[commands(whois, version, uptime, cur)]
 struct General;
 
 struct Handler;
@@ -44,6 +45,7 @@ fn init_command_system() {
     WhoisHandler::init();
     VersionHandler::init();
     UptimeHandler::init();
+    CurrencyHandler::init();
 }
 
 async fn start() {
@@ -78,5 +80,11 @@ async fn version(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 async fn uptime(ctx: &Context, msg: &Message) -> CommandResult {
     UptimeHandler::process(ctx, msg).await;
+    Ok(())
+}
+
+#[command]
+async fn cur(ctx: &Context, msg: &Message) -> CommandResult {
+    CurrencyHandler::process(ctx, msg).await;
     Ok(())
 }
