@@ -6,6 +6,7 @@ fork from bot template https://github.com/unStatiK/serenity-bot-skeleton for cus
 * whois - list of whois info for domains
 * version - get bot version
 * uptime - get bot start time
+* cur - get currencies rates
 
 
 # Build
