@@ -120,7 +120,10 @@ async fn show_all_expire_date(ctx: &Context, msg: &Message) {
     for domain in handler.iter() {
         builder.append(get_expire_date_str(domain));
     }
-    msg.reply(ctx, builder.string().unwrap()).await.unwrap();
+    let content = builder.string().unwrap();
+    if !content.is_empty() {
+        msg.reply(ctx, content).await.unwrap();
+    }
 }
 
 fn get_all_saved_domains() -> Vec<String> {
