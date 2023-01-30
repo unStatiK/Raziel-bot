@@ -1,19 +1,18 @@
-extern crate os_info;
-
 use crate::commands::command_handler::CommandHandler;
-use crate::bot_core::constants::RAZIEL_VERSION;
 use crate::bot_core::context::GLOBAL_CONTEXT;
 
 use serenity::async_trait;
 use serenity::client::Context;
 use serenity::model::channel::Message;
 
-const COMMAND_NAME: &str = "version";
+use string_builder::Builder;
 
-pub struct VersionHandler {}
+const COMMAND_NAME: &str = "commands";
+
+pub struct CommandsHandler {}
 
 #[async_trait]
-impl CommandHandler for VersionHandler {
+impl CommandHandler for CommandsHandler {
     fn init() {}
 
     fn registry() {
@@ -21,6 +20,6 @@ impl CommandHandler for VersionHandler {
     }
 
     async fn process(ctx: &Context, msg: &Message) {
-        msg.reply(ctx, format!("```core version: {} [{}]```", RAZIEL_VERSION, os_info::get())).await.unwrap();
+        msg.reply(ctx, format!("```Enable commands list: [{}]```", GLOBAL_CONTEXT.lock().unwrap().get_commands().join(", "))).await.unwrap();
     }
 }

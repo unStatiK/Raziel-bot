@@ -1,6 +1,7 @@
 extern crate whois;
 
 use crate::commands::command_handler::CommandHandler;
+use crate::bot_core::context::GLOBAL_CONTEXT;
 
 use serenity::async_trait;
 use serenity::client::Context;
@@ -9,6 +10,7 @@ use serenity::model::channel::Message;
 
 pub struct CurrencyHandler {}
 
+const COMMAND_NAME: &str = "cur";
 const HELP_ARGUMENT: &str = "help";
 const ARG_CURRENCIES_ERROR: &str = "error: need provide currencies in format !cur EUR RUB";
 const ARG_MULTIPLIER_ERROR: &str = "error: need provide positive number in multiplier argument";
@@ -16,6 +18,10 @@ const ARG_MULTIPLIER_ERROR: &str = "error: need provide positive number in multi
 #[async_trait]
 impl CommandHandler for CurrencyHandler {
     fn init() {}
+
+    fn registry() {
+        GLOBAL_CONTEXT.lock().unwrap().registry_command(String::from(COMMAND_NAME));
+    }
 
     async fn process(ctx: &Context, msg: &Message) {
         let mut args = Args::new(msg.content.as_str(), &[Delimiter::Single(' ')]);

@@ -21,13 +21,14 @@ use serenity::framework::standard::macros::{command, group};
 use serenity::framework::standard::{StandardFramework, CommandResult};
 
 use libc_alloc::LibcAlloc;
+use crate::commands::commands::CommandsHandler;
 use crate::commands::cur::CurrencyHandler;
 
 #[global_allocator]
 static ALLOCATOR: LibcAlloc = LibcAlloc;
 
 #[group]
-#[commands(whois, version, uptime, cur)]
+#[commands(whois, version, uptime, cur, commands)]
 struct General;
 
 struct Handler;
@@ -37,8 +38,17 @@ impl EventHandler for Handler {}
 
 #[tokio::main]
 async fn main() {
+    registry_commands();
     init_command_system();
     start().await;
+}
+
+fn registry_commands() {
+    WhoisHandler::registry();
+    VersionHandler::registry();
+    UptimeHandler::registry();
+    CurrencyHandler::registry();
+    CommandsHandler::registry();
 }
 
 fn init_command_system() {
@@ -46,6 +56,7 @@ fn init_command_system() {
     VersionHandler::init();
     UptimeHandler::init();
     CurrencyHandler::init();
+    CommandsHandler::init();
 }
 
 async fn start() {
@@ -86,5 +97,11 @@ async fn uptime(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 async fn cur(ctx: &Context, msg: &Message) -> CommandResult {
     CurrencyHandler::process(ctx, msg).await;
+    Ok(())
+}
+
+#[command]
+async fn commands(ctx: &Context, msg: &Message) -> CommandResult {
+    CommandsHandler::process(ctx, msg).await;
     Ok(())
 }

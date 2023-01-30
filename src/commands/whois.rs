@@ -2,6 +2,7 @@ extern crate whois;
 
 use crate::commands::command_handler::CommandHandler;
 use crate::bot_core::db::RzDb;
+use crate::bot_core::context::GLOBAL_CONTEXT;
 
 use std::thread;
 
@@ -16,6 +17,7 @@ use string_builder::Builder;
 
 pub struct WhoisHandler {}
 
+const COMMAND_NAME: &str = "whois";
 const HELP_ARGUMENT: &str = "help";
 const SAVE_ARGUMENT: &str = "save";
 const DEL_ARGUMENT: &str = "del";
@@ -32,6 +34,10 @@ impl CommandHandler for WhoisHandler {
             domain TEXT NOT NULL UNIQUE
         )";
         RzDb::tx_execute(&conn, query);
+    }
+
+    fn registry() {
+        GLOBAL_CONTEXT.lock().unwrap().registry_command(String::from(COMMAND_NAME));
     }
 
     async fn process(ctx: &Context, msg: &Message) {
