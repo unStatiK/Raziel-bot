@@ -7,6 +7,7 @@ fork from bot template https://github.com/unStatiK/serenity-bot-skeleton for cus
 * version - get bot version
 * uptime - get bot start time
 * cur - get currencies rates
+* commands - get list enable commands
 
 
 # Build
