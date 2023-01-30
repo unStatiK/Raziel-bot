@@ -13,6 +13,8 @@ use commands::command_handler::CommandHandler;
 use commands::whois::WhoisHandler;
 use commands::version::VersionHandler;
 use commands::uptime::UptimeHandler;
+use commands::commands::CommandsHandler;
+use commands::cur::CurrencyHandler;
 
 use serenity::async_trait;
 use serenity::prelude::*;
@@ -21,8 +23,6 @@ use serenity::framework::standard::macros::{command, group};
 use serenity::framework::standard::{StandardFramework, CommandResult};
 
 use libc_alloc::LibcAlloc;
-use crate::commands::commands::CommandsHandler;
-use crate::commands::cur::CurrencyHandler;
 
 #[global_allocator]
 static ALLOCATOR: LibcAlloc = LibcAlloc;

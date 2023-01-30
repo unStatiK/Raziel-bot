@@ -5,8 +5,6 @@ use serenity::async_trait;
 use serenity::client::Context;
 use serenity::model::channel::Message;
 
-use string_builder::Builder;
-
 const COMMAND_NAME: &str = "commands";
 
 pub struct CommandsHandler {}
