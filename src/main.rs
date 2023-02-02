@@ -1,13 +1,10 @@
 #![forbid(unsafe_code)]
+mod commands;
+mod bot_core;
 
 extern crate libc_alloc;
 extern crate rustc_serialize;
 extern crate string_builder;
-
-mod commands;
-mod bot_core;
-
-use std::env;
 
 use commands::command_handler::CommandHandler;
 use commands::whois::WhoisHandler;
@@ -15,6 +12,8 @@ use commands::version::VersionHandler;
 use commands::uptime::UptimeHandler;
 use commands::commands::CommandsHandler;
 use commands::cur::CurrencyHandler;
+
+use std::env;
 
 use serenity::async_trait;
 use serenity::prelude::*;
