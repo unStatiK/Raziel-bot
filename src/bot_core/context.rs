@@ -58,10 +58,6 @@ impl RzContext {
             data_read.get::<RzCommands>().expect("Expected RzCommands in TypeMap.").clone()
         };
         let rz_commands = rz_commands_lock.read().await;
-        let mut commands = Vec::new();
-        for command in rz_commands.iter() {
-            commands.push(String::from(command));
-        }
-        return commands;
+        rz_commands.to_vec()
     }
 }
