@@ -22,5 +22,5 @@ DISCORD_TOKEN=<discord_bot_token> ./target/release/raziel.exe
 
 -  import order: extern crates, project crates, std imports, serenity imports, other imports
 -  commands file names should same as command name
--  at command file async functions should be declared first then normal functions, exception only for init() and registry()
--  always call init() and registry() methods for all commands in init_command_system()
+-  at command file async functions should be declared first then normal functions
+-  always call init() and registry() methods for all commands in init_command_system() and registry_commands()
