@@ -1,4 +1,5 @@
 #![forbid(unsafe_code)]
+
 mod commands;
 mod bot_core;
 
@@ -12,8 +13,10 @@ use commands::version::VersionHandler;
 use commands::uptime::UptimeHandler;
 use commands::commands::CommandsHandler;
 use commands::cur::CurrencyHandler;
+use bot_core::context::RzContext;
 
 use std::env;
+use std::sync::Arc;
 
 use serenity::async_trait;
 use serenity::prelude::*;
@@ -37,25 +40,27 @@ impl EventHandler for Handler {}
 
 #[tokio::main]
 async fn main() {
-    registry_commands();
-    init_command_system();
     start().await;
 }
 
-fn registry_commands() {
-    WhoisHandler::registry();
-    VersionHandler::registry();
-    UptimeHandler::registry();
-    CurrencyHandler::registry();
-    CommandsHandler::registry();
+async fn init_context(ctx: Arc<RwLock<TypeMap>>) {
+    RzContext::init_context(ctx).await;
 }
 
-fn init_command_system() {
-    WhoisHandler::init();
-    VersionHandler::init();
-    UptimeHandler::init();
-    CurrencyHandler::init();
-    CommandsHandler::init();
+async fn registry_commands(ctx: Arc<RwLock<TypeMap>>) {
+    WhoisHandler::registry(ctx.clone()).await;
+    VersionHandler::registry(ctx.clone()).await;
+    UptimeHandler::registry(ctx.clone()).await;
+    CurrencyHandler::registry(ctx.clone()).await;
+    CommandsHandler::registry(ctx.clone()).await;
+}
+
+async fn init_command_system(ctx: Arc<RwLock<TypeMap>>) {
+    WhoisHandler::init(ctx.clone()).await;
+    VersionHandler::init(ctx.clone()).await;
+    UptimeHandler::init(ctx.clone()).await;
+    CurrencyHandler::init(ctx.clone()).await;
+    CommandsHandler::init(ctx.clone()).await;
 }
 
 async fn start() {
@@ -69,6 +74,10 @@ async fn start() {
         .framework(framework)
         .await
         .expect("Error creating client");
+
+    init_context(client.data.clone()).await;
+    registry_commands(client.data.clone()).await;
+    init_command_system(client.data.clone()).await;
 
     if let Err(why) = client.start().await {
         println!("An error occurred while running the client: {:?}", why);

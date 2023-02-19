@@ -1,14 +1,17 @@
 extern crate whois;
 
 use crate::commands::command_handler::CommandHandler;
-use crate::bot_core::context::GLOBAL_CONTEXT;
+use crate::bot_core::context::RzContext;
+
+use std::sync::Arc;
 
 use serenity::async_trait;
 use serenity::client::Context;
+use serenity::prelude::{TypeMap, RwLock};
 use serenity::framework::standard::{Args, Delimiter};
 use serenity::model::channel::Message;
 
-pub struct CurrencyHandler {}
+pub struct CurrencyHandler;
 
 const COMMAND_NAME: &str = "cur";
 const HELP_ARGUMENT: &str = "help";
@@ -17,10 +20,10 @@ const ARG_MULTIPLIER_ERROR: &str = "error: need provide positive number in multi
 
 #[async_trait]
 impl CommandHandler for CurrencyHandler {
-    fn init() {}
+    async fn init(_ctx: Arc<RwLock<TypeMap>>) {}
 
-    fn registry() {
-        GLOBAL_CONTEXT.lock().unwrap().registry_command(String::from(COMMAND_NAME));
+    async fn registry(ctx: Arc<RwLock<TypeMap>>) {
+        RzContext::registry_command(ctx, String::from(COMMAND_NAME)).await;
     }
 
     async fn process(ctx: &Context, msg: &Message) {

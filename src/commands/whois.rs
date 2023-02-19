@@ -1,13 +1,15 @@
 extern crate whois;
 
 use crate::commands::command_handler::CommandHandler;
+use crate::bot_core::context::RzContext;
 use crate::bot_core::db::RzDb;
-use crate::bot_core::context::GLOBAL_CONTEXT;
 
 use std::thread;
+use std::sync::Arc;
 
 use serenity::async_trait;
 use serenity::client::Context;
+use serenity::prelude::{TypeMap, RwLock};
 use serenity::framework::standard::{Args, Delimiter};
 use serenity::model::channel::Message;
 
@@ -15,7 +17,7 @@ use whois::WhoIs;
 use rustc_serialize::json::Json;
 use string_builder::Builder;
 
-pub struct WhoisHandler {}
+pub struct WhoisHandler;
 
 const COMMAND_NAME: &str = "whois";
 const HELP_ARGUMENT: &str = "help";
@@ -27,7 +29,7 @@ const ARG_DOMAIN_ERROR: &str = "error: need provide domain name";
 
 #[async_trait]
 impl CommandHandler for WhoisHandler {
-    fn init() {
+    async fn init(_ctx: Arc<RwLock<TypeMap>>) {
         let conn = RzDb::get_connection();
         let query = "CREATE TABLE IF NOT EXISTS domains (
             id   INTEGER PRIMARY KEY,
@@ -36,8 +38,8 @@ impl CommandHandler for WhoisHandler {
         RzDb::tx_execute(&conn, query);
     }
 
-    fn registry() {
-        GLOBAL_CONTEXT.lock().unwrap().registry_command(String::from(COMMAND_NAME));
+    async fn registry(ctx: Arc<RwLock<TypeMap>>) {
+        RzContext::registry_command(ctx, String::from(COMMAND_NAME)).await;
     }
 
     async fn process(ctx: &Context, msg: &Message) {

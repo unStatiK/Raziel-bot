@@ -1,23 +1,26 @@
 use crate::commands::command_handler::CommandHandler;
-use crate::bot_core::context::GLOBAL_CONTEXT;
+use crate::bot_core::context::RzContext;
+
+use std::sync::Arc;
 
 use serenity::async_trait;
 use serenity::client::Context;
+use serenity::prelude::{TypeMap, RwLock};
 use serenity::model::channel::Message;
 
 const COMMAND_NAME: &str = "commands";
 
-pub struct CommandsHandler {}
+pub struct CommandsHandler;
 
 #[async_trait]
 impl CommandHandler for CommandsHandler {
-    fn init() {}
+    async fn init(_ctx: Arc<RwLock<TypeMap>>) {}
 
-    fn registry() {
-        GLOBAL_CONTEXT.lock().unwrap().registry_command(String::from(COMMAND_NAME));
+    async fn registry(ctx: Arc<RwLock<TypeMap>>) {
+        RzContext::registry_command(ctx, String::from(COMMAND_NAME)).await;
     }
 
     async fn process(ctx: &Context, msg: &Message) {
-        msg.reply(ctx, format!("```Enable commands list: [{}]```", GLOBAL_CONTEXT.lock().unwrap().get_commands().join(", "))).await.unwrap();
+        msg.reply(ctx, format!("```Enable commands list: [{}]```", RzContext::get_commands(ctx.data.clone()).await.join(", "))).await.unwrap();
     }
 }
