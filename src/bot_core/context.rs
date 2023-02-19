@@ -1,8 +1,6 @@
 use std::{sync::Arc, collections::HashMap};
 
-use serenity::prelude::{TypeMap, TypeMapKey};
-
-use tokio::sync::RwLock;
+use serenity::prelude::{TypeMap, TypeMapKey, RwLock};
 
 pub struct RzMeta;
 
