@@ -4,3 +4,4 @@ pub(crate) mod whois;
 pub(crate) mod uptime;
 pub(crate) mod cur;
 pub(crate) mod commands;
+pub(crate) mod foxy;
