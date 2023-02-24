@@ -8,6 +8,7 @@ fork from bot template https://github.com/unStatiK/serenity-bot-skeleton for cus
 * uptime - get bot start time
 * cur - get currencies rates
 * commands - get list enable commands
+* foxy - get random image link with fox
 
 
 # Build
