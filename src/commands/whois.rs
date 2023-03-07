@@ -147,13 +147,15 @@ async fn show_all_expire_date(ctx: &Context, msg: &Message) {
 
 async fn get_all_saved_domains() -> Vec<String> {
     let conn = RzDb::get_connection().await;
-    sqlx::query("SELECT domain FROM domains").fetch_all(&conn)
-        .await
-        .iter()
-        .map(|r| r.first())
-        .filter(|r| r.is_some())
-        .map(|r| r.unwrap().get(0))
-        .collect::<Vec<String>>()
+    let rows = sqlx::query("SELECT domain FROM domains").fetch_all(&conn).await;
+    let mut domains = Vec::new();
+    if rows.is_ok() {
+        for row in rows.unwrap().iter() {
+            let domain = row.get(0);
+            domains.push(domain);
+        }
+    }
+    domains
 }
 
 fn get_expire_date_str(domain: &String) -> String {
