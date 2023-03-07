@@ -4,7 +4,6 @@ use crate::commands::command_handler::CommandHandler;
 use crate::bot_core::context::RzContext;
 use crate::bot_core::db::RzDb;
 
-use std::thread;
 use std::sync::Arc;
 
 use serenity::async_trait;
@@ -15,6 +14,7 @@ use serenity::model::channel::Message;
 
 use whois::WhoIs;
 use rustc_serialize::json::Json;
+use sqlx::Row;
 use string_builder::Builder;
 
 pub struct WhoisHandler;
@@ -30,12 +30,15 @@ const ARG_DOMAIN_ERROR: &str = "error: need provide domain name";
 #[async_trait]
 impl CommandHandler for WhoisHandler {
     async fn init(_ctx: Arc<RwLock<TypeMap>>) {
-        let conn = RzDb::get_connection();
-        let query = "CREATE TABLE IF NOT EXISTS domains (
-            id   INTEGER PRIMARY KEY,
-            domain TEXT NOT NULL UNIQUE
-        )";
-        RzDb::tx_execute(&conn, query);
+        let conn = RzDb::get_connection().await;
+        let query = r#" CREATE TABLE IF NOT EXISTS domains (
+                        id     INTEGER PRIMARY KEY,
+                        domain TEXT NOT NULL UNIQUE
+                    )"#;
+        let init_result = RzDb::tx_execute(&conn, query).await;
+        if !init_result {
+            panic!("Init bot failed!");
+        }
     }
 
     async fn registry(ctx: Arc<RwLock<TypeMap>>) {
@@ -87,20 +90,28 @@ async fn error_reply(ctx: &Context, msg: &Message, error: &str) {
 }
 
 async fn save_domain(ctx: &Context, msg: &Message, domain: &str) {
-    let conn = RzDb::get_connection();
-    RzDb::tx_execute(&conn, format!("INSERT INTO domains (domain) VALUES ('{}')", domain).as_str());
-    msg.reply(ctx, format!("domain {} saved!", domain)).await.unwrap();
+    let conn = RzDb::get_connection().await;
+    let save_result = RzDb::tx_execute(&conn, format!("INSERT INTO domains (domain) VALUES ('{}')", domain).as_str()).await;
+    if save_result {
+        msg.reply(ctx, format!("domain {} saved!", domain)).await.unwrap();
+    } else {
+        msg.reply(ctx, "domain save failed!").await.unwrap();
+    }
 }
 
 async fn delete_domain(ctx: &Context, msg: &Message, domain: &str) {
-    let conn = RzDb::get_connection();
-    RzDb::tx_execute(&conn, format!("DELETE FROM domains where domain = '{}'", domain).as_str());
-    msg.reply(ctx, format!("domain {} delete!", domain)).await.unwrap();
+    let conn = RzDb::get_connection().await;
+    let del_result = RzDb::tx_execute(&conn, format!("DELETE FROM domains where domain = '{}'", domain).as_str()).await;
+    if del_result {
+        msg.reply(ctx, format!("domain {} delete!", domain)).await.unwrap();
+    } else {
+        msg.reply(ctx, "domain delete failed!").await.unwrap();
+    }
 }
 
 async fn show_list_domains(ctx: &Context, msg: &Message) {
     let mut builder = Builder::default();
-    let handler = get_all_saved_domains();
+    let handler = get_all_saved_domains().await;
     builder.append("list domains:\n");
     for domain in handler.iter() {
         builder.append(format!("{}\n", domain.as_str()));
@@ -124,7 +135,7 @@ async fn show_expire_date(ctx: &Context, msg: &Message, domain: &str) {
 
 async fn show_all_expire_date(ctx: &Context, msg: &Message) {
     let mut builder = Builder::default();
-    let handler = get_all_saved_domains();
+    let handler = get_all_saved_domains().await;
     for domain in handler.iter() {
         builder.append(get_expire_date_str(domain));
     }
@@ -134,20 +145,15 @@ async fn show_all_expire_date(ctx: &Context, msg: &Message) {
     }
 }
 
-fn get_all_saved_domains() -> Vec<String> {
-    return thread::spawn(|| {
-        let mut domains = Vec::new();
-        let conn = RzDb::get_connection();
-        let mut stmt = conn.prepare("SELECT domain FROM domains").unwrap();
-        let rows = stmt.query_map([], |row| {
-            row.get::<usize, String>(0)
-        }).unwrap();
-        for domain_name in rows {
-            let dom = domain_name.unwrap();
-            domains.push(dom);
-        }
-        return domains;
-    }).join().unwrap();
+async fn get_all_saved_domains() -> Vec<String> {
+    let conn = RzDb::get_connection().await;
+    sqlx::query("SELECT domain FROM domains").fetch_all(&conn)
+        .await
+        .iter()
+        .map(|r| r.first())
+        .filter(|r| r.is_some())
+        .map(|r| r.unwrap().get(0))
+        .collect::<Vec<String>>()
 }
 
 fn get_expire_date_str(domain: &String) -> String {

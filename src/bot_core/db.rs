@@ -1,23 +1,30 @@
 use crate::bot_core::constants::DB_FILE_NAME;
 
-use std::path::Path;
-
-use rusqlite::Connection;
+use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
+use sqlx::SqlitePool;
 
 pub struct RzDb;
 
 impl RzDb {
-    pub fn get_connection() -> Connection {
-        return Connection::open(DB_FILE_NAME).unwrap();
+    pub async fn get_connection() -> SqlitePool {
+        let opts = SqliteConnectOptions::new()
+            .pragma("encoding", "\"UTF-8\"")
+            .pragma("synchronous", "FULL")
+            .create_if_missing(true)
+            .filename(DB_FILE_NAME);
+        SqlitePoolOptions::new()
+            .max_connections(1)
+            .connect_with(opts)
+            .await.unwrap()
     }
 
-    pub fn tx_execute(conn: &Connection, query: &str) {
-        let tx = conn.unchecked_transaction();
-        conn.execute(query, ());
-        tx.expect("EXECUTE QUERY FAILED").commit();
-    }
-
-    pub fn is_exists() -> bool {
-        return Path::new(DB_FILE_NAME).exists();
+    pub async fn tx_execute(pool: &SqlitePool, plain_query: &str) -> bool {
+        let mut tx = pool.begin().await.unwrap();
+        let result = sqlx::query(plain_query).execute(&mut tx).await;
+        let tx_result = tx.commit().await;
+        if result.is_ok() && tx_result.is_ok() {
+            return true;
+        }
+        false
     }
 }
