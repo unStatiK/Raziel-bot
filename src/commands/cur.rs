@@ -48,7 +48,7 @@ impl CommandHandler for CurrencyHandler {
         let src_currency = args.single::<String>().unwrap();
         let target_currency = args.single::<String>().unwrap();
         if args_len >= 4 {
-            let multiplier_arg = args.single::<String>().unwrap().parse::<u32>();
+            let multiplier_arg = args.single::<String>().unwrap().parse::<f32>();
             if multiplier_arg.is_ok() {
                 let multiplier = multiplier_arg.unwrap();
                 show_rates(ctx, msg, prepare_currency_arg(src_currency).as_str(), prepare_currency_arg(target_currency).as_str(), multiplier).await;
@@ -56,7 +56,7 @@ impl CommandHandler for CurrencyHandler {
                 error_reply(ctx, msg, ARG_MULTIPLIER_ERROR).await;
             }
         } else {
-            show_rates(ctx, msg, prepare_currency_arg(src_currency).as_str(), prepare_currency_arg(target_currency).as_str(), 0).await;
+            show_rates(ctx, msg, prepare_currency_arg(src_currency).as_str(), prepare_currency_arg(target_currency).as_str(), 0.0).await;
         }
     }
 }
@@ -72,13 +72,13 @@ async fn print_help(ctx: &Context, msg: &Message) {
     !cur EUR RUB 10 - show x10 rates currencies```").await.unwrap();
 }
 
-async fn show_rates(ctx: &Context, msg: &Message, src: &str, target: &str, multiplier: u32) {
+async fn show_rates(ctx: &Context, msg: &Message, src: &str, target: &str, multiplier: f32) {
     msg.reply(ctx, get_rates_str(src, target, multiplier).await).await.unwrap();
 }
 
-async fn get_rates_str(src: &str, target: &str, multiplier: u32) -> String {
+async fn get_rates_str(src: &str, target: &str, multiplier: f32) -> String {
     let value = get_rates(src, target).await.parse::<f32>().unwrap();
-    let calculated_value_str = if multiplier == 0 {
+    let calculated_value_str = if multiplier == 0.0 {
         format!("{} -> {}: {}\n", src, target, value)
     } else {
         format!("[x{}]::{} -> {}: {}\n", multiplier, src, target, value * multiplier as f32)
