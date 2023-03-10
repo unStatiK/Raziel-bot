@@ -11,7 +11,6 @@ os_info = { version = "3.5.1", default-features = false }
 chrono = "0.4.23"
 libc_alloc = "1.0.4"
 whois = "0.1.0"
-rustc-serialize = "0.3.24"
 string-builder = "0.2.0"
 reqwest = "0.11.13"
 serde = "1.0.152"

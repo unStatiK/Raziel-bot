@@ -4,7 +4,6 @@ mod commands;
 mod bot_core;
 
 extern crate libc_alloc;
-extern crate rustc_serialize;
 extern crate string_builder;
 
 use commands::command_handler::CommandHandler;

@@ -13,9 +13,9 @@ use serenity::framework::standard::{Args, Delimiter};
 use serenity::model::channel::Message;
 
 use whois::WhoIs;
-use rustc_serialize::json::Json;
 use sqlx::Row;
 use string_builder::Builder;
+use serde_json::Value;
 
 pub struct WhoisHandler;
 
@@ -164,14 +164,14 @@ fn get_expire_date_str(domain: &String) -> String {
 
 fn get_expire_date(domain: &str) -> String {
     let whois_response = WhoIs::new(domain.to_owned()).lookup();
-    let whois_json = &Json::from_str(&whois_response.unwrap()).unwrap();
+    let whois_json: Value = serde_json::from_str(&whois_response.unwrap()).unwrap();
     let whois = whois_json.as_object().unwrap();
     let mut expire = whois.get("   Registry Expiry Date");
-    if expire != None {
+    if expire.is_some() {
         return expire.unwrap().to_string();
     }
     expire = whois.get("free-date");
-    if expire != None {
+    if expire.is_some() {
         return expire.unwrap().to_string();
     }
     "".to_string()
