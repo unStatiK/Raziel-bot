@@ -1,19 +1,19 @@
 [package]
 name = "raziel"
-version = "0.4.2"
+version = "0.4.3"
 edition = "2021"
 
 [dependencies]
 serenity = { version = "0.11.5", default-features = false, features = ["client", "gateway", "default_native_tls", "model", "simd_json"] }
 tokio = { version = "1.26.0", features = ["macros", "rt-multi-thread"] }
-sqlx = { version = "0.6.2", features = [ "runtime-tokio-native-tls", "sqlite"] }
-os_info = { version = "3.6.0", default-features = false }
-chrono = "0.4.23"
+sqlx = { version = "0.6.3", features = [ "runtime-tokio-native-tls", "sqlite"] }
+os_info = { version = "3.7.0", default-features = false }
+chrono = "0.4.24"
 libc_alloc = "1.0.4"
 whois = "0.1.0"
 string-builder = "0.2.0"
-reqwest = "0.11.14"
-serde = "1.0.154"
+reqwest = "0.11.15"
+serde = "1.0.158"
 serde_json = "1.0.94"
 rand = "0.8.5"
 
