@@ -31,12 +31,21 @@ const ARG_DOMAIN_ERROR: &str = "error: need provide domain name";
 impl CommandHandler for WhoisHandler {
     async fn init(_ctx: Arc<RwLock<TypeMap>>) {
         let conn = RzDb::get_connection().await;
-        let query = r#" CREATE TABLE IF NOT EXISTS domains (
+        let mut init_fail = false;
+        if conn.is_ok() {
+            let query = r#" CREATE TABLE IF NOT EXISTS domains (
                         id     INTEGER PRIMARY KEY,
                         domain TEXT NOT NULL UNIQUE
                     )"#;
-        let init_result = RzDb::tx_execute(&conn, query).await;
-        if !init_result {
+            let init_result = RzDb::tx_execute(&conn.unwrap(), query).await;
+            if !init_result {
+                init_fail = true;
+            }
+        } else {
+            init_fail = true;
+        }
+
+        if init_fail {
             panic!("Init bot failed!");
         }
     }
@@ -91,7 +100,10 @@ async fn error_reply(ctx: &Context, msg: &Message, error: &str) {
 
 async fn save_domain(ctx: &Context, msg: &Message, domain: &str) {
     let conn = RzDb::get_connection().await;
-    let save_result = RzDb::tx_execute(&conn, format!("INSERT INTO domains (domain) VALUES ('{}')", domain).as_str()).await;
+    let mut save_result = false;
+    if conn.is_ok() {
+        save_result = RzDb::tx_execute(&conn.unwrap(), format!("INSERT INTO domains (domain) VALUES ('{}')", domain).as_str()).await;
+    }
     if save_result {
         msg.reply(ctx, format!("domain {} saved!", domain)).await.unwrap();
     } else {
@@ -101,7 +113,10 @@ async fn save_domain(ctx: &Context, msg: &Message, domain: &str) {
 
 async fn delete_domain(ctx: &Context, msg: &Message, domain: &str) {
     let conn = RzDb::get_connection().await;
-    let del_result = RzDb::tx_execute(&conn, format!("DELETE FROM domains where domain = '{}'", domain).as_str()).await;
+    let mut del_result = false;
+    if conn.is_ok() {
+        del_result = RzDb::tx_execute(&conn.unwrap(), format!("DELETE FROM domains where domain = '{}'", domain).as_str()).await;
+    }
     if del_result {
         msg.reply(ctx, format!("domain {} delete!", domain)).await.unwrap();
     } else {
@@ -147,12 +162,14 @@ async fn show_all_expire_date(ctx: &Context, msg: &Message) {
 
 async fn get_all_saved_domains() -> Vec<String> {
     let conn = RzDb::get_connection().await;
-    let rows = sqlx::query("SELECT domain FROM domains").fetch_all(&conn).await;
     let mut domains = Vec::new();
-    if rows.is_ok() {
-        for row in rows.unwrap().iter() {
-            let domain = row.get(0);
-            domains.push(domain);
+    if conn.is_ok() {
+        let rows = sqlx::query("SELECT domain FROM domains").fetch_all(&conn.unwrap()).await;
+        if rows.is_ok() {
+            for row in rows.unwrap().iter() {
+                let domain = row.get(0);
+                domains.push(domain);
+            }
         }
     }
     domains
@@ -164,15 +181,20 @@ fn get_expire_date_str(domain: &String) -> String {
 
 fn get_expire_date(domain: &str) -> String {
     let whois_response = WhoIs::new(domain.to_owned()).lookup();
-    let whois_json: Value = serde_json::from_str(&whois_response.unwrap()).unwrap();
-    let whois = whois_json.as_object().unwrap();
-    let mut expire = whois.get("   Registry Expiry Date");
-    if expire.is_some() {
-        return expire.unwrap().to_string();
+    match whois_response {
+        Ok(response) => {
+            let whois_json: Value = serde_json::from_str(&response).unwrap();
+            let whois = whois_json.as_object().unwrap();
+            let mut expire = whois.get("   Registry Expiry Date");
+            if expire.is_some() {
+                return expire.unwrap().to_string();
+            }
+            expire = whois.get("free-date");
+            if expire.is_some() {
+                return expire.unwrap().to_string();
+            }
+            "".to_string()
+        },
+        Err(_e) => return String::from("undefined"),
     }
-    expire = whois.get("free-date");
-    if expire.is_some() {
-        return expire.unwrap().to_string();
-    }
-    "".to_string()
 }

@@ -1,12 +1,12 @@
 use crate::bot_core::constants::DB_FILE_NAME;
 
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
-use sqlx::SqlitePool;
+use sqlx::{Error, SqlitePool};
 
 pub struct RzDb;
 
 impl RzDb {
-    pub async fn get_connection() -> SqlitePool {
+    pub async fn get_connection() -> Result<SqlitePool, Error> {
         let opts = SqliteConnectOptions::new()
             .pragma("encoding", "\"UTF-8\"")
             .pragma("synchronous", "FULL")
@@ -15,7 +15,7 @@ impl RzDb {
         SqlitePoolOptions::new()
             .max_connections(1)
             .connect_with(opts)
-            .await.unwrap()
+            .await
     }
 
     pub async fn tx_execute(pool: &SqlitePool, plain_query: &str) -> bool {

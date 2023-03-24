@@ -11,6 +11,7 @@ use serenity::model::channel::Message;
 use serde::{Deserialize, Serialize};
 use serde_json::Result;
 use rand::Rng;
+use reqwest::Error;
 
 const COMMAND_NAME: &str = "foxy";
 
@@ -50,17 +51,36 @@ async fn process_reply_with_link(ctx: &Context, msg: &Message, link: String) {
 
 async fn get_link_from_random_api() -> String {
     let url = "https://some-random-api.ml/img/fox";
-    return extract_link_from_random_api(get_foxy_content(url).await.as_str()).unwrap();
+    let content = get_foxy_content(url).await;
+    if content.is_ok() {
+        return extract_link_from_random_api(content.unwrap().as_str()).unwrap();
+    } else {
+        return String::from("load foxy picture failed...")
+    }
 }
 
 async fn get_link_from_random_fox() -> String {
     let url = "https://randomfox.ca/floof/";
-    return extract_link_from_random_fox(get_foxy_content(url).await.as_str()).unwrap();
+    let content = get_foxy_content(url).await;
+    if content.is_ok() {
+        return extract_link_from_random_fox(content.unwrap().as_str()).unwrap();
+    } else {
+        return String::from("load foxy picture failed...")
+    }
 }
 
-async fn get_foxy_content(url: &str) -> String {
-    let response = reqwest::get(url).await.unwrap();
-    response.text().await.unwrap()
+async fn get_foxy_content(url: &str) -> core::result::Result<String, Error> {
+    let response = reqwest::get(url).await;
+    match response {
+        Ok(response) => {
+            let body = response.text().await;
+            match body {
+                Ok(payload) => Ok(payload),
+                Err(e) => return Err(e),
+            }
+        },
+        Err(e) => return Err(e),
+    }
 }
 
 fn extract_link_from_random_api(data: &str) -> Result<String> {

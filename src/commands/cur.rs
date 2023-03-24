@@ -11,6 +11,8 @@ use serenity::prelude::{TypeMap, RwLock};
 use serenity::framework::standard::{Args, Delimiter};
 use serenity::model::channel::Message;
 
+use reqwest::{Error, Response};
+
 pub struct CurrencyHandler;
 
 const COMMAND_NAME: &str = "cur";
@@ -77,20 +79,39 @@ async fn show_rates(ctx: &Context, msg: &Message, src: &str, target: &str, multi
 }
 
 async fn get_rates_str(src: &str, target: &str, multiplier: f32) -> String {
-    let value = get_rates(src, target).await.parse::<f32>().unwrap();
-    let calculated_value_str = if multiplier == 0.0 {
-        format!("{} -> {}: {}\n", src, target, value)
+    let rates = get_rates(src, target).await;
+    if rates.is_ok() {
+        let value = rates.unwrap().parse::<f32>().unwrap();
+        let calculated_value_str = if multiplier == 0.0 {
+            format!("{} -> {}: {}\n", src, target, value)
+        } else {
+            format!("[x{}]::{} -> {}: {}\n", multiplier, src, target, value * multiplier as f32)
+        };
+        return calculated_value_str;
     } else {
-        format!("[x{}]::{} -> {}: {}\n", multiplier, src, target, value * multiplier as f32)
-    };
-    calculated_value_str
+        format!("get currencies for {} failed\n", target)
+    }
 }
 
-async fn get_rates(src: &str, target: &str) -> String {
-    let response = reqwest::get(format!("https://api.coingate.com/v2/rates/merchant/{}/{}", src, target)).await.unwrap();
-    let body = response.text().await.unwrap();
-    let rates = if body.is_empty() { "0.0".to_string() } else { body };
-    rates
+async fn get_rates(src: &str, target: &str) -> Result<String, Error> {
+    let response = get_response(src, target).await;
+    match response {
+        Ok(response) => {
+            let body = response.text().await;
+            match body {
+                Ok(payload) => {
+                    let rates = if payload.is_empty() { "0.0".to_string() } else { payload };
+                    return Ok(rates);
+                },
+                Err(e) => return Err(e),
+            };
+        },
+        Err(e) => return Err(e),
+    }
+}
+
+async fn get_response(src: &str, target: &str) -> Result<Response, Error> {
+    reqwest::get(format!("https://api.coingate.com/v2/rates/merchant/{}/{}", src, target)).await
 }
 
 fn prepare_currency_arg(arg: String) -> String {
