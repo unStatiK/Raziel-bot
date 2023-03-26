@@ -19,12 +19,17 @@ impl RzDb {
     }
 
     pub async fn tx_execute(pool: &SqlitePool, plain_query: &str) -> bool {
-        let mut tx = pool.begin().await.unwrap();
-        let result = sqlx::query(plain_query).execute(&mut tx).await;
-        let tx_result = tx.commit().await;
-        if result.is_ok() && tx_result.is_ok() {
-            return true;
+        let tx = pool.begin().await;
+        match tx {
+            Ok(mut tx) => {
+                let result = sqlx::query(plain_query).execute(&mut tx).await;
+                let tx_result = tx.commit().await;
+                if result.is_ok() && tx_result.is_ok() {
+                    return true;
+                }
+                false
+            },
+            Err(_e) => false
         }
-        false
     }
 }
