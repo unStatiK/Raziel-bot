@@ -188,10 +188,14 @@ async fn get_expire_date(domain: &str) -> String {
     let whois_response = get_whois_content(domain).await;
     match whois_response {
         Ok(response) => {
-            let whois_json: WhoisApi = serde_json::from_str(&response).unwrap();
-            let unix_time = whois_json.expires;
-            let timestamp = UNIX_EPOCH + std::time::Duration::from_secs(unix_time as u64);
-            return DateTime::<Utc>::from(timestamp).format("%Y-%m-%d %H:%M:%S").to_string();
+            let whois = serde_json::from_str(&response);
+            if whois.is_ok() {
+                let whois_json: WhoisApi = whois.unwrap();
+                let unix_time = whois_json.expires;
+                let timestamp = UNIX_EPOCH + std::time::Duration::from_secs(unix_time as u64);
+                return DateTime::<Utc>::from(timestamp).format("%Y-%m-%d %H:%M:%S").to_string();
+            }
+            "".to_string()
         },
         Err(_e) => return String::from("undefined"),
     }
