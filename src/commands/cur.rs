@@ -1,5 +1,3 @@
-extern crate whois;
-
 use crate::commands::command_handler::CommandHandler;
 use crate::bot_core::context::RzContext;
 

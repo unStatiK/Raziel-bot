@@ -1,10 +1,9 @@
-extern crate whois;
-
 use crate::commands::command_handler::CommandHandler;
 use crate::bot_core::context::RzContext;
 use crate::bot_core::db::RzDb;
 
 use std::sync::Arc;
+use std::time::UNIX_EPOCH;
 
 use serenity::async_trait;
 use serenity::client::Context;
@@ -12,10 +11,11 @@ use serenity::prelude::{TypeMap, RwLock};
 use serenity::framework::standard::{Args, Delimiter};
 use serenity::model::channel::Message;
 
-use whois::WhoIs;
 use sqlx::Row;
 use string_builder::Builder;
-use serde_json::Value;
+use reqwest::Error;
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
 pub struct WhoisHandler;
 
@@ -26,6 +26,11 @@ const DEL_ARGUMENT: &str = "del";
 const LIST_ARGUMENT: &str = "list";
 const SHOW_ARGUMENT: &str = "show";
 const ARG_DOMAIN_ERROR: &str = "error: need provide domain name";
+
+#[derive(Serialize, Deserialize)]
+struct WhoisApi {
+    expires: u64
+}
 
 #[async_trait]
 impl CommandHandler for WhoisHandler {
@@ -145,14 +150,14 @@ async fn print_help(ctx: &Context, msg: &Message) {
 }
 
 async fn show_expire_date(ctx: &Context, msg: &Message, domain: &str) {
-    msg.reply(ctx, get_expire_date_str(&String::from(domain))).await.unwrap();
+    msg.reply(ctx, get_expire_date_str(&String::from(domain)).await).await.unwrap();
 }
 
 async fn show_all_expire_date(ctx: &Context, msg: &Message) {
     let mut builder = Builder::default();
     let handler = get_all_saved_domains().await;
     for domain in handler.iter() {
-        builder.append(get_expire_date_str(domain));
+        builder.append(get_expire_date_str(domain).await);
     }
     let content = builder.string().unwrap();
     if !content.is_empty() {
@@ -175,26 +180,34 @@ async fn get_all_saved_domains() -> Vec<String> {
     domains
 }
 
-fn get_expire_date_str(domain: &String) -> String {
-    format!("{} expire -> {}\n", domain, get_expire_date(domain))
+async fn get_expire_date_str(domain: &String) -> String {
+    format!("{} expire -> {}\n", domain, get_expire_date(domain).await)
 }
 
-fn get_expire_date(domain: &str) -> String {
-    let whois_response = WhoIs::new(domain.to_owned()).lookup();
+async fn get_expire_date(domain: &str) -> String {
+    let whois_response = get_whois_content(domain).await;
     match whois_response {
         Ok(response) => {
-            let whois_json: Value = serde_json::from_str(&response).unwrap();
-            let whois = whois_json.as_object().unwrap();
-            let mut expire = whois.get("   Registry Expiry Date");
-            if expire.is_some() {
-                return expire.unwrap().to_string();
-            }
-            expire = whois.get("free-date");
-            if expire.is_some() {
-                return expire.unwrap().to_string();
-            }
-            "".to_string()
+            let whois_json: WhoisApi = serde_json::from_str(&response).unwrap();
+            let unix_time = whois_json.expires;
+            let timestamp = UNIX_EPOCH + std::time::Duration::from_secs(unix_time as u64);
+            return DateTime::<Utc>::from(timestamp).format("%Y-%m-%d %H:%M:%S").to_string();
         },
         Err(_e) => return String::from("undefined"),
+    }
+}
+
+async fn get_whois_content(domain: &str) -> Result<String, Error> {
+    let url = format!("http://api.whois.vu/?q={}&clean", domain);
+    let response = reqwest::get(url).await;
+    match response {
+        Ok(response) => {
+            let body = response.text().await;
+            match body {
+                Ok(payload) => Ok(payload),
+                Err(e) => return Err(e),
+            }
+        },
+        Err(e) => return Err(e),
     }
 }
