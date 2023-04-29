@@ -5,15 +5,15 @@ edition = "2021"
 
 [dependencies]
 serenity = { version = "0.11.5", default-features = false, features = ["client", "gateway", "default_native_tls", "model", "simd_json"] }
-tokio = { version = "1.27.0", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.28.0", features = ["macros", "rt-multi-thread"] }
 sqlx = { version = "0.6.3", features = [ "runtime-tokio-native-tls", "sqlite"] }
 os_info = { version = "3.7.0", default-features = false }
 chrono = "0.4.24"
 libc_alloc = "1.0.4"
 string-builder = "0.2.0"
-reqwest = "0.11.16"
+reqwest = "0.11.17"
 serde = "1.0.160"
-serde_json = "1.0.95"
+serde_json = "1.0.96"
 rand = "0.8.5"
 
 [profile.release]
