@@ -1,7 +1,7 @@
 use crate::bot_core::constants::DB_FILE_NAME;
 
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
-use sqlx::{Error, SqlitePool};
+use sqlx::{Error, Executor, SqlitePool};
 
 pub struct RzDb;
 
@@ -22,7 +22,7 @@ impl RzDb {
         let tx = pool.begin().await;
         match tx {
             Ok(mut tx) => {
-                let result = sqlx::query(plain_query).execute(&mut tx).await;
+                let result = tx.execute(plain_query).await;
                 let tx_result = tx.commit().await;
                 if result.is_ok() && tx_result.is_ok() {
                     return true;
