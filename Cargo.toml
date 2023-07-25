@@ -1,6 +1,6 @@
 [package]
 name = "raziel"
-version = "0.4.11"
+version = "0.4.12"
 edition = "2021"
 
 [dependencies]
@@ -9,10 +9,10 @@ tokio = { version = "1.29.1", features = ["macros", "rt-multi-thread"] }
 sqlx = { version = "0.7.1", features = [ "runtime-tokio-native-tls", "sqlite"] }
 os_info = { version = "3.7.0", default-features = false }
 chrono = "0.4.26"
-libc_alloc = "1.0.4"
+libc_alloc = "1.0.5"
 string-builder = "0.2.0"
 reqwest = "0.11.18"
-serde = "1.0.174"
+serde = "1.0.175"
 serde_json = "1.0.103"
 rand = "0.8.5"
 
