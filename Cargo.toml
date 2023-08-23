@@ -1,6 +1,6 @@
 [package]
 name = "raziel"
-version = "0.4.16"
+version = "0.4.17"
 edition = "2021"
 
 [dependencies]
@@ -11,7 +11,7 @@ os_info = { version = "3.7.0", default-features = false }
 chrono = "0.4.26"
 libc_alloc = "1.0.5"
 string-builder = "0.2.0"
-reqwest = "0.11.19"
+reqwest = "0.11.20"
 serde = "1.0.185"
 serde_json = "1.0.105"
 rand = "0.8.5"
