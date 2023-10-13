@@ -4,7 +4,9 @@ version = "0.4.19"
 edition = "2021"
 
 [dependencies]
-serenity = { version = "0.11.6", default-features = false, features = ["client", "gateway", "default_native_tls", "model", "simd_json"] }
+## temporary remove simd_json feature, after release serenity 0.12 enable back, https://github.com/serenity-rs/serenity/pull/2536
+#serenity = { version = "0.11.6", default-features = false, features = ["client", "gateway", "default_native_tls", "model", "simd_json"] }
+serenity = { version = "0.11.6", default-features = false, features = ["client", "gateway", "default_native_tls", "model"] }
 tokio = { version = "1.33.0", features = ["macros", "rt-multi-thread"] }
 sqlx = { version = "0.7.2", features = [ "runtime-tokio-native-tls", "sqlite"] }
 os_info = { version = "3.7.0", default-features = false }
