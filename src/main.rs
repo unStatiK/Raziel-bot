@@ -21,7 +21,7 @@ use serenity::async_trait;
 use serenity::prelude::*;
 use serenity::model::channel::Message;
 use serenity::framework::standard::macros::{command, group};
-use serenity::framework::standard::{StandardFramework, CommandResult};
+use serenity::framework::standard::{StandardFramework, Configuration, CommandResult};
 
 use libc_alloc::LibcAlloc;
 use crate::commands::foxy::FoxyHandler;
@@ -66,9 +66,9 @@ async fn init_command_system(ctx: Arc<RwLock<TypeMap>>) {
 }
 
 async fn start() {
-    let framework = StandardFramework::new()
-        .configure(|c| c.prefix("!"))
-        .group(&GENERAL_GROUP);
+    let framework = StandardFramework::new().group(&GENERAL_GROUP);
+    framework.configure(Configuration::new().prefix("!"));
+
     let token = env::var("DISCORD_TOKEN").expect("token");
     let intents = GatewayIntents::non_privileged() | GatewayIntents::MESSAGE_CONTENT;
     let mut client = Client::builder(token, intents)
