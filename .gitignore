@@ -3,3 +3,5 @@ target
 .idea
 *.db
 Cargo.lock
+raziel
+raziel.pid
