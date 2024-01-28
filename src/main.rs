@@ -15,6 +15,10 @@ use commands::cur::CurrencyHandler;
 use bot_core::context::RzContext;
 
 use std::env;
+use std::process;
+use std::fs::File;
+use std::io::Write;
+use std::io::Error;
 use std::sync::Arc;
 
 use serenity::async_trait;
@@ -40,7 +44,24 @@ impl EventHandler for Handler {}
 
 #[tokio::main]
 async fn main() {
-    start().await;
+    let pid_result = store_pid_file().await;
+    if pid_result.is_ok() {
+        start().await;
+    } else {
+        println!("An error occurred while create pid file!");
+    }
+}
+
+async fn store_pid_file() -> Result<String, Error> {
+    let pid_file = File::create("raziel.pid");
+    match pid_file {
+        Ok(mut pfile) => {
+            let raziel_pid = process::id();
+            let _ = pfile.write_all(raziel_pid.to_string().as_bytes());
+            return Ok(String::from("succes"));
+        }
+        Err(e) => return Err(e),
+    }
 }
 
 async fn init_context(ctx: Arc<RwLock<TypeMap>>) {
