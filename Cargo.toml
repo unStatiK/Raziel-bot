@@ -1,11 +1,11 @@
 [package]
 name = "raziel"
-version = "0.5.6"
+version = "0.5.7"
 edition = "2021"
 
 [dependencies]
 serenity = { version = "0.12.0", default-features = false, features = ["client", "gateway", "default_native_tls", "model", "simd_json"] }
-tokio = { version = "1.35.1", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.36.0", features = ["macros", "rt-multi-thread"] }
 sqlx = { version = "0.7.3", features = [ "runtime-tokio-native-tls", "sqlite"] }
 os_info = { version = "3.7.0", default-features = false }
 chrono = "0.4.33"
